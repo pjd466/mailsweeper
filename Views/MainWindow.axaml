@@ -1,0 +1,49 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MailSweeper.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="MailSweeper.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="MailSweeper">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <!-- We give a name to the root grid in order to access it later -->
+    <Grid RowDefinitions="Auto, Auto, Auto, *"
+          x:Name="Root">
+
+        <!-- This is our title text block. We use Style.Classes to style it accordingly -->
+        <TextBlock Text="My MailSweeper" Classes="h1" />
+
+        <StackPanel Grid.Row = "1" Orientation="Horizontal" Spacing="30">
+            <TextBlock Text="Password:"/>
+            <TextBox PasswordChar="*" Watermark="Enter your password" Text="{Binding password}"/>
+        </StackPanel>
+        <Button Grid.Row="2" Command="{Binding FetchSenderLinesCommand}">Fetch report</Button>
+
+        <ScrollViewer Grid.Row="3">
+            <!-- This ItemsControl show all added SenderStats. -->
+            <!-- It needs to be placed inside a ScrollViewer because other than a ListBox it has not its own -->
+            <ItemsControl ItemsSource="{Binding SenderLines}">
+                <ItemsControl.ItemTemplate>
+                    <!-- The ItemTemplate defines how each item should be represented -->
+                    <DataTemplate DataType="vm:SenderStatsViewModel">
+                        <Grid ColumnDefinitions="300, 40, 90, *" Margin="4" ShowGridLines="True">
+                            <TextBlock Text="{Binding Name}"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Count}" TextAlignment="Right" Padding="0,0,25,0"/>
+                            <TextBlock Grid.Column="2" Text="{Binding TotalSize}" TextAlignment="Right" Padding="0,0,25,0"/>
+                            <TextBlock Grid.Column="3" Text="{Binding MostRecentDate}" Padding="25,0,0,0"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</Window>
