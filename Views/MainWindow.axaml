@@ -6,6 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="MailSweeper.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
+        x:CompileBindings="True"
         Icon="/Assets/avalonia-logo.ico"
         Title="MailSweeper">
 
@@ -15,35 +16,32 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <!-- We give a name to the root grid in order to access it later -->
-    <Grid RowDefinitions="Auto, Auto, Auto, *"
-          x:Name="Root">
+    <!-- We give a name to the root dockpanel in order to access it later -->
+    <!-- Must use DockPanel or Grid here. The DataGrid must be contained in something that 
+         provides fixed size, which isn't the case with a StackPanel -->
+    <DockPanel x:Name="Root" LastChildFill="True">
 
         <!-- This is our title text block. We use Style.Classes to style it accordingly -->
-        <TextBlock Text="My MailSweeper" Classes="h1" />
+        <TextBlock Text="My MailSweeper" Classes="h1" DockPanel.Dock="Top"/>
 
-        <StackPanel Grid.Row = "1" Orientation="Horizontal" Spacing="30">
+        <StackPanel Orientation="Horizontal" Spacing="30" DockPanel.Dock="Top">
             <TextBlock Text="Password:"/>
             <TextBox PasswordChar="*" Watermark="Enter your password" Text="{Binding password}"/>
         </StackPanel>
-        <Button Grid.Row="2" Command="{Binding FetchSenderLinesCommand}">Fetch report</Button>
 
-        <ScrollViewer Grid.Row="3">
-            <!-- This ItemsControl show all added SenderStats. -->
-            <!-- It needs to be placed inside a ScrollViewer because other than a ListBox it has not its own -->
-            <ItemsControl ItemsSource="{Binding SenderLines}">
-                <ItemsControl.ItemTemplate>
-                    <!-- The ItemTemplate defines how each item should be represented -->
-                    <DataTemplate DataType="vm:SenderStatsViewModel">
-                        <Grid ColumnDefinitions="300, 40, 90, *" Margin="4" ShowGridLines="True">
-                            <TextBlock Text="{Binding Name}"/>
-                            <TextBlock Grid.Column="1" Text="{Binding Count}" TextAlignment="Right" Padding="0,0,25,0"/>
-                            <TextBlock Grid.Column="2" Text="{Binding TotalSize}" TextAlignment="Right" Padding="0,0,25,0"/>
-                            <TextBlock Grid.Column="3" Text="{Binding MostRecentDate}" Padding="25,0,0,0"/>
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-    </Grid>
+        <Button Command="{Binding FetchSenderLinesCommand}" DockPanel.Dock="Top">Fetch report</Button>
+
+        <DataGrid ItemsSource="{Binding SenderLines}"
+                AutoGenerateColumns="False"
+                CanUserResizeColumns="True"
+                CanUserSortColumns="True"
+                IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="From"   Binding="{Binding Name}"   Width="400"/>
+                <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="60"/>
+                <DataGridTextColumn Header="Size" Binding="{Binding TotalSize}" Width="150"/>
+                <DataGridTextColumn Header="Latest" Binding="{Binding MostRecentDate}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
 </Window>
