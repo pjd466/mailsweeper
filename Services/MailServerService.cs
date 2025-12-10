@@ -7,6 +7,7 @@ using MailKit.Search;
 using System;
 using System.Linq;
 using System.Data;
+using System.Diagnostics;
 
 namespace MailSweeper.Services;
 
@@ -29,20 +30,26 @@ public static class MailServerService
 
     public static async Task<IEnumerable<SenderStats>> LoadSenderLinesAsync()
     {
+        var stopwatch = Stopwatch.StartNew(); // Start timing
         var result = new Dictionary<string, SenderStats>(StringComparer.OrdinalIgnoreCase);
         
         using var client = new ImapClient();
-        await client.ConnectAsync(_host, _port, _useSSL);
+        await client.ConnectAsync(_host, _port, MailKit.Security.SecureSocketOptions.SslOnConnect);
+        Debug.WriteLine($"Completing connection took {stopwatch.ElapsedMilliseconds} ms");
+
         await client.AuthenticateAsync(_username, _password);
+        Debug.WriteLine($"Completing authentication took {stopwatch.ElapsedMilliseconds} ms");
 
         var folder = client.GetFolder(_folderName);
         await folder.OpenAsync(FolderAccess.ReadOnly);
+        Debug.WriteLine($"Completing up to end of OpenAsync took {stopwatch.ElapsedMilliseconds} ms");
 
         // Get all UIDs
-        var uids = await folder.SearchAsync(SearchQuery.All);
+        // var uids = await folder.SearchAsync(SearchQuery.All);
 
         // Fetch summaries in one go (or in chunks for very large folders)
-        var summaries = await folder.FetchAsync(uids, MessageSummaryItems.Envelope | MessageSummaryItems.Size);
+        var summaries = await folder.FetchAsync(0,-1, MessageSummaryItems.Envelope | MessageSummaryItems.Size);
+        Debug.WriteLine($"Completing up to end of FetchAsync took {stopwatch.ElapsedMilliseconds} ms");
 
         foreach (var summary in summaries)
         {
@@ -69,6 +76,11 @@ public static class MailServerService
         }
 
         await client.DisconnectAsync(true);
+        
+        // Stop and log before returning
+        stopwatch.Stop();
+        Debug.WriteLine($"LoadSenderLinesAsync took {stopwatch.ElapsedMilliseconds} ms");
+
         return result.Values.OrderByDescending(s => s.Count);
     }
 
