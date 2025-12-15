@@ -7,6 +7,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using MailSweeper.Models;
 using MailSweeper.ViewModels;
 using MailSweeper.Services;
+using Avalonia.Collections;
+using CommunityToolkit.Mvvm.Messaging;
+using MailSweeper.Messages;
 
 namespace MailSweeper.ViewModels;
 
@@ -31,7 +34,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task FetchSenderLines()
     {
-        var LinesLoaded = await MailServerService.LoadSenderLinesAsync();
+        var LinesLoaded = await WeakReferenceMessenger.Default.Send<SenderStatsRequestMessage>();
+
+        SenderLines.Clear();
 
         if (LinesLoaded is not null)
         {

@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 namespace MailSweeper.Services;
 
-public static class MailServerService
+public class MailServerService
 {
     private static string _host = "imap.one.com";
     private static int _port = 993;
@@ -28,7 +28,7 @@ public static class MailServerService
         }
     }
 
-    public static async Task<IEnumerable<SenderStats>> LoadSenderLinesAsync()
+    public async Task<IEnumerable<SenderStats>> LoadSenderLinesAsync()
     {
         var stopwatch = Stopwatch.StartNew(); // Start timing
         var result = new Dictionary<string, SenderStats>(StringComparer.OrdinalIgnoreCase);
@@ -84,7 +84,7 @@ public static class MailServerService
         return result.Values.OrderByDescending(s => s.Count);
     }
 
-    public static async Task Sweep(string FolderName, string DestinationFolderName, IList<SweepRule> Rules)
+    public async Task Sweep(string FolderName, string DestinationFolderName, IList<SweepRule> Rules)
     {
         using var client = new ImapClient();
         await client.ConnectAsync(_host, _port, _useSSL);
@@ -105,7 +105,7 @@ public static class MailServerService
         await client.DisconnectAsync(true);
     }
 
-    public static async Task<IList<UniqueId>> GetUIDsToSweep(IMailFolder folder, SweepRule Rule)
+    public async Task<IList<UniqueId>> GetUIDsToSweep(IMailFolder folder, SweepRule Rule)
     {
         // Get all UIDs
         var uids = await folder.SearchAsync(SearchQuery.FromContains(Rule.Name));

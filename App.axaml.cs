@@ -1,11 +1,15 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
 using MailSweeper.ViewModels;
 using MailSweeper.Views;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using CommunityToolkit.Mvvm.Messaging;
+using MailSweeper.Services;
+using MailSweeper.Messages;
 
 namespace MailSweeper;
 
@@ -28,6 +32,17 @@ public partial class App : Application
                 DataContext = new MainWindowViewModel(),
             };
         }
+
+        Ioc.Default.ConfigureServices(
+            new ServiceCollection()
+            // Add Services here
+            .AddSingleton<MailServerService>()
+            .BuildServiceProvider()
+        );
+
+        WeakReferenceMessenger.Default.Register<MailServerService, SenderStatsRequestMessage>(
+            Ioc.Default.GetRequiredService<MailServerService>(), 
+            async (r, m) => m.Reply(r.LoadSenderLinesAsync()));
 
         base.OnFrameworkInitializationCompleted();
     }
